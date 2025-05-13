@@ -7,6 +7,7 @@ from datetime import datetime
 from aiogram.filters import Command
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 import pytz
+import aiohttp
 
 router = Router()
 
@@ -19,6 +20,7 @@ class TaskState(StatesGroup):
     tag = State()
     select_date = State()
     select_hour = State()
+    select_minute = State()
 
 
 @router.message(Command("start"))
@@ -69,6 +71,7 @@ def hour_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
+# обработка часов
 @router.callback_query(F.data.startswith("hour_"))
 async def process_hour(callback: CallbackQuery, state: FSMContext):
     hour = int(callback.data.split("_")[1])
@@ -83,6 +86,7 @@ def minute_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=str(m), callback_data=f"minute_{m}") for m in range(i, i + 5)] for i in
         range(0, 60, 5)
     ])
+
 
 # обработка минут
 @router.callback_query(F.data.startswith("minute_"))
@@ -101,15 +105,27 @@ async def process_minute(callback: CallbackQuery, state: FSMContext):
     await state.update_data(notice_time=notice_time)
 
     await callback.message.answer(f"Дата и время установлены: {notice_time.isoformat()}")
+
+    payload = {
+        "user_id": callback.from_user.id,
+        "message": data["message_text"],
+        "tag": data.get("tag", "без тэга"),
+        "notice_time_date": notice_time
+    }
+    try:
+        response_data = await create_task(payload)
+        await callback.message.answer(f"Задача сохранена: {response_data}")
+
+    except Exception as e:
+        print(e)
+        await callback.message.answer(f"произошла ошибка")
+
     await state.clear()
 
 
-# 👇 здесь можно отправить POST-запрос в DRF
-await message.answer(
-    f"Задача создана:\n\n"
-    f"<b>Текст:</b> {data['message_text']}\n"
-    f"<b>Тег:</b> {data['tag'] or 'нет'}\n"
-    f"<b>Время напоминания:</b> {notice_time.isoformat()}"
-)
-
-await state.clear()
+# запись собранных данных через дрф ручку в постгрес
+async def create_task(data: dict):
+    async with aiohttp.ClientSession() as session:
+        async with session.post("http://localhost:8000/api/tasks/create/", json=data) as response:
+            result = await response.json()
+            return result
