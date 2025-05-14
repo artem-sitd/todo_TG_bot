@@ -1,5 +1,5 @@
 from aiogram import types
-from config import Config
+from config import settings
 from aiohttp import web
 from aio_bot.bot import dp, bot
 import asyncio
@@ -27,19 +27,19 @@ async def main():
         app = web.Application()
 
         # ручка для приема вебхук от телеграма
-        app.router.add_post(Config.WEBHOOK_PATH, handle_webhook)
+        app.router.add_post(settings.WEBHOOK_PATH, handle_webhook)
 
         # просто заглушка
         app.router.add_get('/', index_page)
 
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", 8080)
+        site = web.TCPSite(runner, "0.0.0.0", 8082)
         await site.start()
 
         # Устанавливаем вебхук
-        print("set webhooks")
-        await bot.set_webhook(Config.webhook_url)
+        print(f"set webhooks {settings.webhook_url}")
+        await bot.set_webhook(settings.webhook_url)
 
         # Бесконечный цикл для поддержания работы сервера
         await asyncio.Event().wait()

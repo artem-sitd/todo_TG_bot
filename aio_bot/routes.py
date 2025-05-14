@@ -43,22 +43,17 @@ async def get_tag(message: Message, state: FSMContext):
     tag = None if message.text.strip() == "-" else message.text.strip()
     await state.update_data(tag=tag)
     await state.set_state(TaskState.select_date)
-    await message.answer("Укажите <b>дату</b> напоминания (от 1 до 31):")
-
-
-# стадия календаря
-@router.message(TaskState.select_date)
-async def ask_date(message: Message, state: FSMContext):
-    await message.answer("Выберите дату:", reply_markup=await SimpleCalendar(locale="ru_RU").start_calendar())
+    await message.answer("Выберите дату напоминания:",
+                         reply_markup=await SimpleCalendar(locale="ru_RU.utf8").start_calendar())
 
 
 # обработка выбранной даты из стадии календаря и вызов времени
 @router.callback_query(SimpleCalendarCallback.filter())
 async def process_date(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
-    selected_date = await SimpleCalendar().process_selection(callback_query, callback_data)
-    if selected_date:
-        await state.update_data(date=selected_date.date())
-        await callback_query.message.answer("Выберите час:", reply_markup=hour_keyboard())
+    selected, date = await SimpleCalendar().process_selection(callback_query, callback_data)
+    if selected:
+        await state.update_data(date=date)
+        await callback_query.message.edit_text("Выберите час напоминания:", reply_markup=hour_keyboard())
         await state.set_state(TaskState.select_hour)
 
 
@@ -76,7 +71,7 @@ def hour_keyboard() -> InlineKeyboardMarkup:
 async def process_hour(callback: CallbackQuery, state: FSMContext):
     hour = int(callback.data.split("_")[1])
     await state.update_data(hour=hour)
-    await callback.message.answer("Теперь выберите минуту:", reply_markup=minute_keyboard())
+    await callback.message.answer("Теперь выберите минуту напоминания:", reply_markup=minute_keyboard())
     await state.set_state(TaskState.select_minute)
 
 
@@ -110,7 +105,7 @@ async def process_minute(callback: CallbackQuery, state: FSMContext):
         "user_id": callback.from_user.id,
         "message": data["message_text"],
         "tag": data.get("tag", "без тэга"),
-        "notice_time_date": notice_time
+        "notice_time_date": notice_time.isoformat()
     }
     try:
         response_data = await create_task(payload)

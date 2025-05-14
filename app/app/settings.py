@@ -9,12 +9,14 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+import sys
 from pathlib import Path
-from config import Config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(BASE_DIR))
+from config import settings
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -76,11 +78,11 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': Config.DATABASE_NAME,
-        'USER': Config.DATABASE_USER,
-        'PASSWORD': Config.DATABASE_PASSWORD,
-        'HOST': Config.DATABASE_HOST,
-        'PORT': Config.DATABASE_PORT,
+        'NAME': settings.DATABASE_NAME,
+        'USER': settings.DATABASE_USER,
+        'PASSWORD': settings.DATABASE_PASSWORD,
+        'HOST': settings.DATABASE_HOST,
+        'PORT': settings.DATABASE_PORT,
 
     }
 }
