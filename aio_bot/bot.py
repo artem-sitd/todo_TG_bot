@@ -4,7 +4,7 @@ from aiogram.client.bot import DefaultBotProperties
 from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from config import settings
-from routes import router
+from .routes import router
 
 bot = Bot(token=settings.telegram_api_key, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 

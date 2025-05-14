@@ -71,7 +71,7 @@ def hour_keyboard() -> InlineKeyboardMarkup:
 async def process_hour(callback: CallbackQuery, state: FSMContext):
     hour = int(callback.data.split("_")[1])
     await state.update_data(hour=hour)
-    await callback.message.answer("Теперь выберите минуту напоминания:", reply_markup=minute_keyboard())
+    await callback.message.edit_text("Теперь выберите минуту напоминания:", reply_markup=minute_keyboard())
     await state.set_state(TaskState.select_minute)
 
 
@@ -99,7 +99,7 @@ async def process_minute(callback: CallbackQuery, state: FSMContext):
     notice_time = ADAK_TZ.localize(combined)
     await state.update_data(notice_time=notice_time)
 
-    await callback.message.answer(f"Дата и время установлены: {notice_time.isoformat()}")
+    await callback.message.edit_text(f"Дата и время установлены: {notice_time.strftime('%d.%m.%Y %H:%M')}")
 
     payload = {
         "user_id": callback.from_user.id,
@@ -109,7 +109,8 @@ async def process_minute(callback: CallbackQuery, state: FSMContext):
     }
     try:
         response_data = await create_task(payload)
-        await callback.message.answer(f"Задача сохранена: {response_data}")
+        formatted = format_tasks([response_data], many=False)
+        await callback.message.answer(formatted)
 
     except Exception as e:
         print(e)
@@ -124,3 +125,40 @@ async def create_task(data: dict):
         async with session.post("http://localhost:8000/api/tasks/create/", json=data) as response:
             result = await response.json()
             return result
+
+
+@router.message(Command("list"))
+async def cmd_list(message: Message):
+    response = await get_list_task(message.from_user.id)
+    if not response:
+        await message.answer("У тебя пока что нет задач")
+        return
+    formatted = format_tasks(response)
+    await message.answer(formatted)
+
+
+# получаем весь перечень задач
+async def get_list_task(user_id):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"http://localhost:8000/api/tasks/{user_id}/") as response:
+            result = await response.json()
+            return result
+
+
+def format_tasks(tasks, many=True) -> str:
+    time_format = lambda x: datetime.fromisoformat(x).strftime('%d.%m.%Y %H:%M')
+    formatted = "📋 <b>Список твоих задач:</b>\n\n"
+    if not many:
+        formatted = "📋 <b>Задача создана:</b>\n\n"
+    for task in tasks:
+        formatted += (
+            f"📝 <b>Сообщение:</b> {task['message']}\n"
+            f"🏷️ <b>Тэг:</b> {task['tag'] or '—'}\n"
+            f"📅 <b>Дата создания:</b> {time_format(task['created_at'])}\n"
+            f"⏰ <b>Дата уведомления:</b> {time_format(task['notice_time_date'])}\n"
+            f"\n"
+        )
+    return formatted
+
+
+

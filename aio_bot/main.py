@@ -1,8 +1,23 @@
+from pathlib import Path
+import sys
+
+# добавляем корень проекта для корректных импортов
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
 from aiogram import types
 from config import settings
 from aiohttp import web
 from aio_bot.bot import dp, bot
 import asyncio
+
+# отправка напоминаний
+async def notify(request: web.Request):
+    data = await request.json()
+    user_id = data["user_id"]
+    message = data["message"]
+
+    await bot.send_message(chat_id=user_id, text=f"🔔 Напоминание: {message}")
+    return web.json_response({"status": "ok"}, status=200)
 
 
 # прием вебхуков
@@ -28,6 +43,8 @@ async def main():
 
         # ручка для приема вебхук от телеграма
         app.router.add_post(settings.WEBHOOK_PATH, handle_webhook)
+
+        app.router.add_post("/notify/", notify)
 
         # просто заглушка
         app.router.add_get('/', index_page)

@@ -7,6 +7,7 @@ class Task(models.Model):
     tag = models.CharField(max_length=40, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     notice_time_date = models.DateTimeField()
+    notified = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         return f"{self.user_id} — {self.message[:30]}"
