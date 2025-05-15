@@ -1,5 +1,6 @@
 from app.celery import celery_app
 from django.utils import timezone
+from config import settings
 from .models import Task
 import requests
 
@@ -16,9 +17,10 @@ def check_and_notify():
 
 
 def send_via_bot_api(user_id: int, message: str):
+    url = f'http://{settings.aiohttp_url}notify/'
     try:
         response = requests.post(
-            "http://localhost:8082/notify/",
+            url,
             json={"user_id": user_id, "message": message},
             timeout=5
         )

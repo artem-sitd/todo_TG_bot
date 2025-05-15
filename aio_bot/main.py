@@ -10,6 +10,7 @@ from aiohttp import web
 from aio_bot.bot import dp, bot
 import asyncio
 
+
 # отправка напоминаний
 async def notify(request: web.Request):
     data = await request.json()
@@ -51,7 +52,7 @@ async def main():
 
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", 8082)
+        site = web.TCPSite(runner, "0.0.0.0", settings.AIOHTTP_PORT)
         await site.start()
 
         # Устанавливаем вебхук

@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: django_app
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    depends_on:
+      - db
+    command: bash -c "cd app && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+
+  aio_bot:
+    build:
+      context: .
+      dockerfile: aio_bot/Dockerfile
+    container_name: aio_bot
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    depends_on:
+      - django
+    command: bash -c "cd aio_bot && python3 main.py"
+    ports:
+      - "8082:8082"
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build:
+      context: .
+    container_name: "celery_worker"
+    image: celery:latest
+    command: bash -c "celery -A app worker -l info"
+    depends_on:
+      - db
+      - django
+      - redis
+    volumes:
+      - ./:/app
+
+  celery_beat:
+    build:
+      context: .
+    container_name: "celery_beat"
+    image: celery:latest
+    command: bash -c "celery -A app beat -l info"
+    depends_on:
+      - db
+      - django
+      - celery_worker
+      - redis
+    volumes:
+      - ./:/app
+
+volumes:
+  pgdata:
