@@ -1,7 +1,4 @@
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-
-load_dotenv()
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
@@ -9,16 +6,22 @@ class Config(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     DATABASE_HOST: str
-    DATABASE_PORT: str
+    DATABASE_PORT: int
     POSTGRES_DB: str
     WEBHOOK_HOST: str
     WEBHOOK_PATH: str
     REDIS_HOST: str
-    REDIS_PORT: str
+    REDIS_PORT: int
     DJANGO_HOST: str
-    DJANGO_PORT: str
+    DJANGO_PORT: int
     AIOHTTP_HOST: str
-    AIOHTTP_PORT: str
+    AIOHTTP_PORT: int
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
     @property
     def webhook_url(self):
@@ -26,7 +29,7 @@ class Config(BaseSettings):
 
     @property
     def django_url(self):
-        return f'http://:{self.DJANGO_HOST}:{self.DJANGO_PORT}/'
+        return f'http://{self.DJANGO_HOST}:{self.DJANGO_PORT}/'
 
     @property
     def aiohttp_url(self):

@@ -1,0 +1,7 @@
+pydantic-settings==2.9.1
+Django==5.2.1
+djangorestframework==3.16.0
+psycopg2==2.9.10
+pytz==2025.2
+tzdata==2025.2
+sqlparse==0.5.3

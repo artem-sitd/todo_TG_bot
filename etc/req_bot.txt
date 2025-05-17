@@ -1,0 +1,6 @@
+aiogram==3.20.0.post0
+aiogram_calendar==0.6.0
+aiohttp==3.11.18
+pytz==2025.2
+aiofiles==24.1.0
+pydantic-settings==2.9.1
