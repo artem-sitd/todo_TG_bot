@@ -1,12 +1,12 @@
 FROM python:3.12-slim
 
-WORKDIR /code
+WORKDIR /todo_TG_bot
 
-COPY requirements.txt .
+COPY etc/req_bot.txt .
+RUN pip install --no-cache-dir -r req_bot.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY aio_bot aio_bot
+COPY config.py .
+COPY .env .
 
-COPY . .
-
-ENV PYTHONPATH=/code
-
+CMD ["python3", "aio_bot/main.py"]

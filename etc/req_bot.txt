@@ -4,3 +4,4 @@ aiohttp==3.11.18
 pytz==2025.2
 aiofiles==24.1.0
 pydantic-settings==2.9.1
+dotenv==0.9.9

@@ -2,3 +2,7 @@ pydantic-settings==2.9.1
 Django==5.2.1
 redis==6.1.0
 celery==5.5.2
+dotenv==0.9.9
+djangorestframework==3.16.0
+psycopg2-binary==2.9.10
+requests==2.32.3

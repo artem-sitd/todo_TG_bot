@@ -6,7 +6,7 @@ services:
     container_name: redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6378:6379"
 
   db:
     image: postgres:15
@@ -17,61 +17,59 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    depends_on:
+      - redis
 
   django:
     build:
       context: .
-      dockerfile: app/Dockerfile
+      dockerfile: etc/Dockerfile_django
     container_name: django_app
-    volumes:
-      - .:/code
-    env_file:
-      - .env
+    restart: always
     depends_on:
       - db
       - redis
-    command: bash -c "cd app && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
 
   aio_bot:
     build:
       context: .
-      dockerfile: aio_bot/Dockerfile
+      dockerfile: etc/Dockerfile_bot
     container_name: aio_bot
-    volumes:
-      - .:/code
-    env_file:
-      - .env
+    restart: always
     depends_on:
       - django
-    command: bash -c "cd aio_bot && python3 main.py"
+      - redis
+      - db
     ports:
       - "8082:8082"
 
   celery_worker:
+    build:
+      context: .
+      dockerfile: etc/Dockerfile_worker
     container_name: "celery_worker"
-    image: celery:latest
-    command: bash -c "celery -A app worker -l info"
+    restart: always
     depends_on:
       - db
       - django
       - redis
-    volumes:
-      - ./:/app
+      - aio_bot
 
   celery_beat:
+    build:
+      context: .
+      dockerfile: etc/Dockerfile_beat
     container_name: "celery_beat"
-    image: celery:latest
-    command: bash -c "celery -A app beat -l info"
+    restart: always
     depends_on:
       - db
       - django
       - celery_worker
       - redis
-    volumes:
-      - ./:/app
+      - aio_bot
 
 volumes:
   pgdata:

@@ -1,10 +1,17 @@
 FROM python:3.12-slim
 
-WORKDIR /code
+WORKDIR /todo_TG_bot
 
-COPY requirements.txt .
+COPY etc/req_django.txt .
+RUN pip install --no-cache-dir -r req_django.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+COPY app app
+COPY config.py .
+COPY .env .
+COPY etc/wait_db.sh /wait_db.sh
+RUN chmod +x /wait_db.sh
 
+ENTRYPOINT ["/wait_db.sh"]
+CMD ["python3", "app/manage.py", "runserver", "0.0.0.0:8000"]

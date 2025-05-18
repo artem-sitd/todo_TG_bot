@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+
+WORKDIR /todo_TG_bot/app
+
+COPY etc/req_beat.txt .
+RUN pip install --no-cache-dir -r req_beat.txt
+
+COPY app .
+COPY config.py /todo_TG_bot
+COPY .env /todo_TG_bot
+
+CMD ["celery", "-A", "app", "beat", "-l", "info"]

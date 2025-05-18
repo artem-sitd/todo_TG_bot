@@ -14,3 +14,6 @@ celery -A app worker -l info
 
 Перейминовываем .env.template в обычный .env, вставляем в telegram_api_key=ваш апи от @botfather
 Ниже по каждой переменной:
+
+Получить вебхуки
+> lt --port 8082
