@@ -4,9 +4,18 @@ WORKDIR /todo_TG_bot
 
 COPY etc/req_bot.txt .
 RUN pip install --no-cache-dir -r req_bot.txt
+RUN apt-get update && \
+    apt-get install -y locales && \
+    sed -i '/ru_RU.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen ru_RU.UTF-8 && \
+    echo "LANG=ru_RU.UTF-8" > /etc/default/locale
+ENV LANG=ru_RU.UTF-8
+ENV LANGUAGE=ru_RU:ru
+ENV LC_ALL=ru_RU.UTF-8
 
 COPY aio_bot aio_bot
 COPY config.py .
 COPY .env .
+EXPOSE 8080
 
 CMD ["python3", "aio_bot/main.py"]

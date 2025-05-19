@@ -123,7 +123,7 @@ async def process_minute(callback: CallbackQuery, state: FSMContext):
 
 # запись собранных данных через дрф ручку в постгрес
 async def create_task(data: dict):
-    url = f"http://{settings.django_url}api/tasks/create/"
+    url = f"{settings.django_url}api/tasks/create/"
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=data) as response:
             result = await response.json()
@@ -142,11 +142,14 @@ async def cmd_list(message: Message):
 
 # получаем весь перечень задач
 async def get_list_task(user_id):
-    url = f"http://{settings.django_url}api/tasks/{user_id}/"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            result = await response.json()
-            return result
+    url = f"{settings.django_url}api/tasks/{user_id}/"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                result = await response.json()
+                return result
+    except aiohttp.ClientConnectorError as e:
+        print(f"Ошибка подключения: {e}")
 
 
 def format_tasks(tasks, many=True) -> str:

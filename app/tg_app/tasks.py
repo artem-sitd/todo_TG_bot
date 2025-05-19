@@ -17,7 +17,7 @@ def check_and_notify():
 
 
 def send_via_bot_api(user_id: int, message: str):
-    url = f'http://{settings.aiohttp_url}notify/'
+    url = f'{settings.aiohttp_url}notify/'
     try:
         response = requests.post(
             url,
