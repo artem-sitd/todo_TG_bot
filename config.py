@@ -17,6 +17,7 @@ class Config(BaseSettings):
     DJANGO_PORT: int
     AIOHTTP_HOST: str
     AIOHTTP_PORT: int
+    DJANGO_SECRET_KEY: str = "django-insecure-6c9m_mb-v5r*t6+z!d^n@d*z0*a2@4xe7=u!rmg9$5yo_-h%^1"
 
     model_config = SettingsConfigDict(
         env_file=str(Path(__file__).resolve().parent / ".env"),
